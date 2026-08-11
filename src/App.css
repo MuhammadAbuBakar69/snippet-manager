@@ -373,3 +373,6 @@ body {
   border-radius: 0.375rem;
   cursor: pointer;
 }
+
+.sm-btn-filter, .sm-btn-favorite { border: 1px solid rgba(148,163,184,.35); background: transparent; color: inherit; border-radius: 6px; padding: .5rem .75rem; cursor: pointer; }
+.sm-btn-filter.active, .sm-btn-favorite:hover { background: rgba(99,102,241,.2); }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './snippet-manager_App.css';
+import './App.css';
 
 const DEFAULT_SNIPPETS = [
   {
@@ -81,6 +81,8 @@ export default function App() {
   });
 
   const [selectedLanguage, setSelectedLanguage] = useState('All');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState(() => JSON.parse(localStorage.getItem('snippet_manager_favorites') || '[]'));
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSnippetId, setActiveSnippetId] = useState(snippets[0]?.id || null);
   const [copiedId, setCopiedId] = useState(null);
@@ -100,11 +102,16 @@ export default function App() {
     }
   }, [snippets]);
 
+  useEffect(() => {
+    localStorage.setItem('snippet_manager_favorites', JSON.stringify(favoriteIds));
+  }, [favoriteIds]);
+
   const filteredSnippets = snippets.filter(s => {
     const matchesLang = selectedLanguage === 'All' || s.language === selectedLanguage;
+    const matchesFavorite = !showFavoritesOnly || favoriteIds.includes(s.id);
     const matchesQuery = s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          s.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesLang && matchesQuery;
+    return matchesLang && matchesQuery && matchesFavorite;
   });
 
   const activeSnippet = snippets.find(s => s.id === activeSnippetId) || filteredSnippets[0];
@@ -114,6 +121,8 @@ export default function App() {
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
+
+  const toggleFavorite = (id) => setFavoriteIds((ids) => ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]);
 
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this code snippet?')) {
@@ -161,6 +170,7 @@ export default function App() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          <button className={`sm-btn-filter ${showFavoritesOnly ? 'active' : ''}`} onClick={() => setShowFavoritesOnly((value) => !value)}>★ Favorites</button>
           <button className="sm-btn-add" onClick={() => setIsModalOpen(true)}>+ New Snippet</button>
         </div>
       </header>
@@ -221,6 +231,7 @@ export default function App() {
                   >
                     {copiedId === activeSnippet.id ? '✓ Copied!' : '📋 Copy Code'}
                   </button>
+                  <button className="sm-btn-favorite" onClick={() => toggleFavorite(activeSnippet.id)}>{favoriteIds.includes(activeSnippet.id) ? '★ Favorited' : '☆ Favorite'}</button>
                   <button className="sm-btn-delete" onClick={() => handleDelete(activeSnippet.id)}>
                     🗑️ Delete
                   </button>
